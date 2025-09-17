@@ -1,0 +1,124 @@
+# ==========================
+# Core Project Configuration
+# ==========================
+
+variable "project_name" {
+  description = "The name of the project. Used consistently for naming, tagging, and organizational purposes across resources."
+  type        = string
+}
+
+variable "name" {
+  description = "Base name identifier applied to all resources (e.g., cluster name, IAM roles, etc.) for consistent resource naming."
+  type        = string
+}
+
+variable "environment" {
+  description = "Deployment environment identifier (e.g., dev, staging, prod). Used for environment-specific tagging and naming."
+  type        = string
+}
+
+# ==========
+# Networking
+# ==========
+
+variable "vpc_id" {
+  description = "The ID of the existing VPC in which ECS and related resources will be deployed."
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "A list of subnet IDs to place ECS tasks and load balancers into. Should align with your availability zone strategy."
+  type        = list(string)
+}
+
+# ======================
+# ECS Task Configuration
+# ======================
+
+variable "tasks" {
+  description = <<-DESC
+    A list of ECS task configurations. Each object represents a single ECS service configuration with
+    support for optional load balancer integration, IAM task roles, custom port mappings, and more.
+  DESC
+  type = list(object({
+    name                = string                  // Name of the ECS task definition and service
+    image_uri           = string                  // Container image URI from ECR or external registry
+    essential           = optional(bool)          // Whether the container is essential to the task
+    lb_target_group_arn = optional(string)        // Target group ARN (used when attaching to a load balancer)
+    lb_sg_id            = optional(string)        // Security Group ID for the associated load balancer
+    container_port      = optional(number)        // Container port to expose (used for service discovery or load balancer)
+    task_role_arn       = optional(string)        // IAM role ARN the task assumes for permissions
+    cpu                 = optional(number)        // CPU units reserved for the task
+    memory              = optional(number)        // Memory (in MiB) reserved for the task
+    enable_public_http  = optional(bool)          // Enable HTTP access via ALB
+    enable_public_https = optional(bool)          // Enable HTTPS access via ALB
+    subnet_ids          = list(string)            // Subnets in which to deploy the task/service
+    command             = optional(list(string))  // Override container entrypoint command
+    load_balancer_config = optional(list(object({ // Load balancer settings for the ECS service
+      sg_id            = string                   // Security Group ID for the load balancer
+      target_group_arn = string                   // ARN of the target group the container is registered to
+      container_port   = number                   // Port exposed on the container to register in the target group
+    })))
+    environment = optional(list(object({ // List of environment variables for the container
+      name  = string
+      value = string
+    })))
+    portMappings = optional(list(object({ // List of port mappings for container networking
+      containerPort = number              // Port exposed inside the container
+      hostPort      = number              // Host port (typically 0 unless EC2 mode is used)
+    })))
+    desired_count = number // Desired number of task replicas (ECS service count)
+  }))
+  default = []
+}
+
+# ==========================
+# Capacity Provider Settings
+# ==========================
+
+variable "provider_type" {
+  description = <<-DESC
+    ECS capacity provider mode to use. 
+    Options:
+    - 'ec2'            → Only EC2 instances via auto scaling groups
+    - 'fargate'        → Fargate only
+    - 'fargate-spot'   → Fargate Spot only (cheaper, less reliable)
+    - 'combine'        → Mix of EC2, FARGATE, and FARGATE_SPOT
+  DESC
+  type        = string
+
+  validation {
+    condition     = contains(["ec2", "fargate", "fargate-spot", "combine"], var.provider_type)
+    error_message = "Invalid provider_type. Must be one of: ec2, fargate, fargate-spot, combine."
+  }
+}
+
+variable "auto_scaling_groups" {
+  description = "List of ARNs of EC2 Auto Scaling Groups that will serve as capacity providers when using 'ec2' or 'combine' mode."
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_managed_scaling" {
+  description = "Whether ECS should automatically scale the EC2 Auto Scaling Groups based on task demand."
+  type        = bool
+  default     = false
+}
+
+variable "enable_managed_draining" {
+  description = "Enable task draining on EC2 instance termination. Recommended for EC2 capacity providers."
+  type        = bool
+  default     = false
+}
+
+variable "enable_managed_termination_protection" {
+  description = "Protect EC2 instances in ECS from being terminated by the Auto Scaling Group unintentionally."
+  type        = bool
+  default     = false
+}
+
+variable "enable_target_tracking_scaling" {
+  description = "Enable CPU and Memory-based auto scaling policies (target tracking) on ECS services."
+  type        = bool
+  default     = false
+}
