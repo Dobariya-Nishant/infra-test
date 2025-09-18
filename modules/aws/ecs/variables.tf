@@ -26,11 +26,6 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "subnet_ids" {
-  description = "A list of subnet IDs to place ECS tasks and load balancers into. Should align with your availability zone strategy."
-  type        = list(string)
-}
-
 # ======================
 # ECS Task Configuration
 # ======================
@@ -44,8 +39,6 @@ variable "tasks" {
     name                = string                  // Name of the ECS task definition and service
     image_uri           = string                  // Container image URI from ECR or external registry
     essential           = optional(bool)          // Whether the container is essential to the task
-    lb_target_group_arn = optional(string)        // Target group ARN (used when attaching to a load balancer)
-    lb_sg_id            = optional(string)        // Security Group ID for the associated load balancer
     container_port      = optional(number)        // Container port to expose (used for service discovery or load balancer)
     task_role_arn       = optional(string)        // IAM role ARN the task assumes for permissions
     cpu                 = optional(number)        // CPU units reserved for the task
@@ -58,7 +51,7 @@ variable "tasks" {
       sg_id            = string                   // Security Group ID for the load balancer
       target_group_arn = string                   // ARN of the target group the container is registered to
       container_port   = number                   // Port exposed on the container to register in the target group
-    })))
+    }))) 
     environment = optional(list(object({ // List of environment variables for the container
       name  = string
       value = string
@@ -76,49 +69,8 @@ variable "tasks" {
 # Capacity Provider Settings
 # ==========================
 
-variable "provider_type" {
-  description = <<-DESC
-    ECS capacity provider mode to use. 
-    Options:
-    - 'ec2'            → Only EC2 instances via auto scaling groups
-    - 'fargate'        → Fargate only
-    - 'fargate-spot'   → Fargate Spot only (cheaper, less reliable)
-    - 'combine'        → Mix of EC2, FARGATE, and FARGATE_SPOT
-  DESC
-  type        = string
-
-  validation {
-    condition     = contains(["ec2", "fargate", "fargate-spot", "combine"], var.provider_type)
-    error_message = "Invalid provider_type. Must be one of: ec2, fargate, fargate-spot, combine."
-  }
-}
-
 variable "auto_scaling_groups" {
   description = "List of ARNs of EC2 Auto Scaling Groups that will serve as capacity providers when using 'ec2' or 'combine' mode."
   type        = list(string)
   default     = []
-}
-
-variable "enable_managed_scaling" {
-  description = "Whether ECS should automatically scale the EC2 Auto Scaling Groups based on task demand."
-  type        = bool
-  default     = false
-}
-
-variable "enable_managed_draining" {
-  description = "Enable task draining on EC2 instance termination. Recommended for EC2 capacity providers."
-  type        = bool
-  default     = false
-}
-
-variable "enable_managed_termination_protection" {
-  description = "Protect EC2 instances in ECS from being terminated by the Auto Scaling Group unintentionally."
-  type        = bool
-  default     = false
-}
-
-variable "enable_target_tracking_scaling" {
-  description = "Enable CPU and Memory-based auto scaling policies (target tracking) on ECS services."
-  type        = bool
-  default     = false
 }

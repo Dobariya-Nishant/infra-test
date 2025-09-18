@@ -7,8 +7,8 @@ resource "aws_autoscaling_group" "this" {
   desired_capacity          = var.desired_capacity
   max_size                  = var.max_size
   min_size                  = var.min_size
-  health_check_grace_period = 120
-  health_check_type         = var.health_check_type
+  health_check_grace_period = 300
+  health_check_type         = "EC2"
   placement_group           = aws_placement_group.this.id
   vpc_zone_identifier       = var.vpc_zone_identifier
   protect_from_scale_in     = true
@@ -36,7 +36,7 @@ resource "aws_autoscaling_group" "this" {
 
 resource "aws_placement_group" "this" {
   name     = local.name
-  strategy = var.placement_strategy
+  strategy = "spread"
 }
 
 # ================================
@@ -49,7 +49,7 @@ resource "aws_launch_template" "this" {
   image_id      = data.aws_ami.al2023_ecs_kernel6plus.image_id
   key_name      = aws_key_pair.this.key_name
 
-  user_data = base64encode(data.template_file.ecs_user_data[0].rendered)
+  user_data = base64encode(data.template_file.ecs_user_data.rendered)
 
   iam_instance_profile {
     name = aws_iam_instance_profile.this.name
@@ -66,7 +66,7 @@ resource "aws_launch_template" "this" {
   }
 
   network_interfaces {
-    associate_public_ip_address = var.associate_public_ip_address
+    associate_public_ip_address = var.enable_public_ip_address
     security_groups             = [aws_security_group.this.id]
   }
 
@@ -108,7 +108,7 @@ data "http" "my_ip" {
 # =================================
 
 resource "aws_security_group" "this" {
-  description = "Security Group"
+  description = "${local.name} Security Group"
   name        = local.name
   vpc_id      = var.vpc_id
 
@@ -173,7 +173,7 @@ resource "aws_security_group_rule" "public_ssh" {
 resource "aws_security_group_rule" "loadbalancer_sg_access" {
   count = length(var.load_balancer_config)
 
-  description              = "Allow HTTPS"
+  description              = "Allow LoadBalancer traffic"
   type                     = "ingress"
   from_port                = var.load_balancer_config[count.index].port
   to_port                  = var.load_balancer_config[count.index].port
@@ -226,11 +226,11 @@ resource "aws_iam_role_policy_attachment" "this" {
 }
 
 resource "aws_iam_instance_profile" "this" {
-  count = var.ecs_cluster_name != null ? 1 : 0
-
   name = "${local.name}-ecsInstanceProfile"
   role = aws_iam_role.this.name
-  tags = { Name = "${local.name}-ecsInstanceProfile" }
+  tags = {
+    Name = "${local.name}-ecsInstanceProfile"
+  }
 }
 
 # ==============================================

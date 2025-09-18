@@ -75,15 +75,9 @@ variable "security_groups" {
   default     = []
 }
 
-# =======================
-# EC2 & AMI Configuration
-# =======================
-
-variable "ami_id" {
-  description = "AMI ID to use for EC2 instances. If not provided, the latest Amazon Linux 2023 will be used."
-  type        = string
-  default     = null
-}
+# =================
+# EC2 Configuration
+# =================
 
 variable "instance_type" {
   description = "EC2 instance type to launch (e.g., t3.micro, m5.large)."
@@ -103,13 +97,7 @@ variable "ebs_size" {
   default     = 30
 }
 
-variable "use_spot" {
-  description = "Use EC2 Spot Instances for cost optimization. Set to true to enable."
-  type        = bool
-  default     = false
-}
-
-variable "associate_public_ip_address" {
+variable "enable_public_ip_address" {
   description = "Associate a public IP address with launched EC2 instances. Useful for SSH or internet access."
   type        = bool
   default     = false
@@ -119,22 +107,6 @@ variable "user_data" {
   description = "Base64-encoded user data script to bootstrap EC2 instances (e.g., install packages, join ECS cluster)."
   type        = string
   default     = ""
-}
-
-# ===================
-# Key Pair Management
-# ===================
-
-variable "key_pair_name" {
-  description = "Name of an existing EC2 Key Pair to use. If not provided, a new key pair will be created."
-  type        = string
-  default     = null
-}
-
-variable "create_new_key_pair" {
-  description = "Set to true to automatically create a new EC2 key pair and store it locally."
-  type        = bool
-  default     = false
 }
 
 # ===============
@@ -169,36 +141,8 @@ variable "min_size" {
   default     = 1
 }
 
-variable "placement_strategy" {
-  description = "Placement strategy for EC2 instances within the Auto Scaling Group (e.g., cluster, spread)."
-  type        = string
-  default     = "spread"
-}
-
-variable "health_check_type" {
-  description = "Health check type for the Auto Scaling Group. Valid values: 'EC2', 'ELB'."
-  type        = string
-  default     = "EC2"
-}
-
 variable "target_group_arns" {
   description = "List of target group ARNs to register EC2 instances (used when attached to a Load Balancer)."
   type        = list(string)
   default     = []
-}
-
-variable "protect_from_scale_in" {
-  description = "Protect EC2 instances from being terminated during scale-in events."
-  type        = bool
-  default     = false
-}
-
-# ================================
-# CloudWatch Alarms (Auto Scaling)
-# ================================
-
-variable "enable_auto_scaling_alarms" {
-  description = "Enable CloudWatch alarms that trigger auto scaling based on CPU utilization."
-  type        = bool
-  default     = false
 }
