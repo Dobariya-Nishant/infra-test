@@ -3,7 +3,7 @@ include {
 }
 
 terraform {
-  source = "../../../modules/aws/asg"
+  source = "../../../modules/aws/alb"
 }
 
 dependency "vpc" {
@@ -21,17 +21,14 @@ locals {
 }
 
 inputs = {
-  name                 = "cardstudio-asg"
+  name                 = "cardstudio"
   
   project_name         = local.env_vars.locals.project_name
   environment          = local.env_vars.locals.environment
 
   vpc_id               = dependency.vpc.outputs.vpc_id
-  subnet_ids           = dependency.vpc.outputs.private_subent_ids
-  
-  # desired_capacity = 0
-  # max_size = 0
-  # min_size = 0
+  subnet_ids  = dependency.vpc.outputs.private_subent_ids
 
-  ecs_cluster_name     = "cardstudio-ecs-dev"
+  enable_public_http = true
+  internal = false
 }

@@ -8,7 +8,12 @@ output "sg_id" {
   value       = aws_security_group.this.id
 }
 
-output "target_groups" {
+output "default_tg_arn" {
   description = "ID of the load balancer"
-  value       = aws_lb_target_group.this
+  value       = aws_lb_target_group.default.arn
+}
+
+output "api_tg_arn" {
+  description = "ID of the load balancer"
+  value       = aws_lb_target_group.api_tg.arn
 }

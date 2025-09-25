@@ -51,74 +51,8 @@ variable "enable_public_http" {
 # ⚖️ Load Balancer Settings
 # =========================
 
-variable "enable_cross_zone_load_balancing" {
-  description = "Enables/disables cross-zone load balancing on the ALB to distribute traffic evenly across AZs."
-  type        = bool
-  default     = false
-}
-
 variable "internal" {
   description = "Determines if the ALB is internal (private) or internet-facing (public). Set to true for internal."
   type        = bool
   default     = true
-}
-
-# ==============================
-# 🎯 Target Group Configurations
-# ==============================
-
-variable "target_groups" {
-  description = <<-EOT
-    Map of target group definitions. Each entry configures how traffic is forwarded 
-    to the backend resources (EC2, IPs, or Lambda). Includes optional health checks, 
-    deregistration behavior, and client IP preservation.
-  EOT
-
-  type = map(object({
-    name                          = optional(string) # Custom name (optional)
-    target_type                   = optional(string) # instance | ip | lambda
-    port                          = number           # Port ALB forwards traffic to
-    protocol                      = string           # HTTP | HTTPS
-    connection_termination        = optional(bool)   # Whether to close connection after response
-    preserve_client_ip            = optional(string) # Preserve source IP (valid for NLB only)
-    deregistration_delay          = optional(string) # Delay before deregistering targets
-    load_balancing_algorithm_type = optional(string) # round_robin or least_outstanding_requests
-
-    health_check = optional(object({
-      enabled             = bool             # Whether to enable health check
-      port                = number           # Port to use for health checks
-      path                = optional(string) # Endpoint path (e.g., /health)
-      interval            = optional(number) # Interval in seconds
-      healthy_threshold   = optional(number) # Required successes to mark healthy
-      unhealthy_threshold = optional(number) # Required failures to mark unhealthy
-      timeout             = optional(number) # Timeout in seconds for health check
-    }))
-  }))
-}
-
-# ==========================
-# 🎧 Listener + Rule Configs
-# ==========================
-
-variable "listeners" {
-  description = <<-EOT
-    Map of ALB listener configurations. Each listener defines protocol/port + 
-    forwarding behavior to a target group. Also includes optional HTTPS cert ARN 
-    and path-based routing rules.
-  EOT
-
-  type = map(object({
-    port            = number           # Listener port (usually 80 or 443)
-    target_type     = optional(string) # instance | ip | lambda (inherits from target group)
-    protocol        = string           # HTTP | HTTPS
-    certificate_arn = optional(string) # Required for HTTPS
-    forward = object({
-      target_group_key = string # Reference to the default target group
-    })
-    rules = list(object({
-      path_pattern     = list(string) # Path matchers (e.g., /api/*)
-      priority         = number       # Priority of the rule (unique per listener)
-      target_group_key = string       # Target group key to forward to on match
-    }))
-  }))
 }
