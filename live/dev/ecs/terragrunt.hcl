@@ -30,33 +30,37 @@ dependency "asg" {
   }
 }
 
+locals {
+  env_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+}
+
 inputs = {
-  project_name         = "node-api"
-  name                 = "node-ecs"
-  environment          = "dev"
+  name                 = "cardstudio-ecs"
+
+  project_name = local.env_vars.locals.project_name
+  environment = local.env_vars.locals.environment
 
   vpc_id               = dependency.vpc.outputs.vpc_id
 
   auto_scaling_groups = [dependency.asg.outputs.asg_arn]
 
-
-  tasks = [
-    {
-      name="nginx-dev"
-      image_uri="nginx:latest"
-      essential = true
-      container_port = 80
-      enable_public_http = true
-      cpu = 512
-      memory = 800
-      subnet_ids = dependency.vpc.outputs.private_subent_ids
-      portMappings = [
-        { 
-          containerPort = 80             
-          hostPort      = 80             
-        }
-      ]
-      desired_count = 2
-    }
-  ]
+  # tasks = [
+  #   {
+  #     name="nginx-dev"
+  #     image_uri = "nginx:latest"
+  #     essential = true
+  #     container_port = 80
+  #     enable_public_http = true
+  #     cpu = 512
+  #     memory = 800
+  #     subnet_ids = dependency.vpc.outputs.private_subent_ids
+  #     portMappings = [
+  #       { 
+  #         containerPort = 80             
+  #         hostPort      = 80             
+  #       }
+  #     ]
+  #     desired_count = 2
+  #   }
+  # ]
 }

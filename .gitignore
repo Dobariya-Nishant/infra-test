@@ -31,5 +31,3 @@ terraform.rc
 # === OS-specific (optional) ===
 .DS_Store
 Thumbs.db
-
-modules/

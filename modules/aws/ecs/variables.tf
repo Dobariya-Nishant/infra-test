@@ -47,11 +47,11 @@ variable "tasks" {
     enable_public_https = optional(bool)          // Enable HTTPS access via ALB
     subnet_ids          = list(string)            // Subnets in which to deploy the task/service
     command             = optional(list(string))  // Override container entrypoint command
-    load_balancer_config = optional(list(object({ // Load balancer settings for the ECS service
+    load_balancer_config = list(object({ // Load balancer settings for the ECS service
       sg_id            = string                   // Security Group ID for the load balancer
       target_group_arn = string                   // ARN of the target group the container is registered to
       container_port   = number                   // Port exposed on the container to register in the target group
-    }))) 
+    }))
     environment = optional(list(object({ // List of environment variables for the container
       name  = string
       value = string

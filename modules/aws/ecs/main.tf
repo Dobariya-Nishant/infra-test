@@ -68,13 +68,6 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
       base              = 0
     }
   }
-
-  # Always include FARGATE as default
-  default_capacity_provider_strategy {
-    capacity_provider = "FARGATE"
-    weight            = 1
-    base              = 0
-  }
 }
 
 # ============
