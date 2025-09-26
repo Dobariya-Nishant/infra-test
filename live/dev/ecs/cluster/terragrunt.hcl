@@ -3,11 +3,11 @@ include {
 }
 
 terraform {
-  source = "../../../modules/aws/ecs"
+  source = "../../../modules/aws/ecs/cluster"
 }
 
 dependency "vpc" {
-  config_path = "../vpc"
+  config_path = "../../vpc"
 
   # Optional: helpful for plan if VPC is not applied yet
   mock_outputs = {
@@ -17,8 +17,21 @@ dependency "vpc" {
   }
 }
 
-dependency "asg" {
-  config_path = "../asg"
+dependency "api_asg" {
+  config_path = "../../asg/api"
+
+  # Optional: helpful for plan if VPC is not applied yet
+  mock_outputs = {
+    template_id   = "lt-0123456789abcdef0"
+    template_name = "mock-launch-template"
+    asg_arn       = "arn:aws:autoscaling:us-east-1:111122223333:autoScalingGroup:fake-asg-id:autoScalingGroupName/mock-asg"
+    asg_name      = "mock-asg"
+    asg_id        = "fake-asg-id"
+  }
+}
+
+dependency "client_asg" {
+  config_path = "../../asg/client"
 
   # Optional: helpful for plan if VPC is not applied yet
   mock_outputs = {
@@ -42,25 +55,6 @@ inputs = {
 
   vpc_id = dependency.vpc.outputs.vpc_id
 
-  auto_scaling_groups = [dependency.asg.outputs.asg_arn]
-
-  # tasks = [
-  #   {
-  #     name="nginx-dev"
-  #     image_uri = "nginx:latest"
-  #     essential = true
-  #     container_port = 80
-  #     enable_public_http = true
-  #     cpu = 512
-  #     memory = 800
-  #     subnet_ids = dependency.vpc.outputs.private_subent_ids
-  #     portMappings = [
-  #       { 
-  #         containerPort = 80             
-  #         hostPort      = 80             
-  #       }
-  #     ]
-  #     desired_count = 2
-  #   }
-  # ]
+  frontend_auto_scaling_group_arn = dependency.client_asg.outputs.asg_arn
+  api_auto_scaling_group_arn = dependency.api_asg.outputs.asg_arn
 }

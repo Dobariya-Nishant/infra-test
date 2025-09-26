@@ -3,11 +3,11 @@ include {
 }
 
 terraform {
-  source = "../../../modules/aws/alb"
+  source = "../../../../modules/aws/asg"
 }
 
 dependency "vpc" {
-  config_path = "../vpc"
+  config_path = "../../vpc"
 
   # Optional: helpful for plan if VPC is not applied yet
   mock_outputs = {
@@ -21,7 +21,7 @@ locals {
 }
 
 inputs = {
-  name = "cardstudio"
+  name = "cardstudio-client"
 
   project_name = local.env_vars.locals.project_name
   environment  = local.env_vars.locals.environment
@@ -29,6 +29,9 @@ inputs = {
   vpc_id     = dependency.vpc.outputs.vpc_id
   subnet_ids = dependency.vpc.outputs.private_subent_ids
 
-  enable_public_http = true
-  internal           = false
+  desired_capacity = 0
+  max_size         = 0
+  min_size         = 0
+
+  ecs_cluster_name = "cardstudio-ecs-dev"
 }
