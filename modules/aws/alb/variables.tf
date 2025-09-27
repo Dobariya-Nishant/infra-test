@@ -31,6 +31,11 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
+variable "zone_id" {
+  description = "List of subnet IDs to launch the ALB and associated resources into. Typically across multiple AZs."
+  type        = string
+}
+
 # =======================
 # 🔐 Security Group Rules
 # =======================
@@ -55,4 +60,9 @@ variable "internal" {
   description = "Determines if the ALB is internal (private) or internet-facing (public). Set to true for internal."
   type        = bool
   default     = true
+}
+
+variable "domain_name" {
+  description = "domain name"
+  type        = string
 }

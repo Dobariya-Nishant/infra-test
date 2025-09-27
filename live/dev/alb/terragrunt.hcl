@@ -25,9 +25,10 @@ inputs = {
 
   project_name = local.env_vars.locals.project_name
   environment  = local.env_vars.locals.environment
+  domain_name = local.env_vars.locals.domain_name
 
   vpc_id     = dependency.vpc.outputs.vpc_id
-  subnet_ids = dependency.vpc.outputs.private_subent_ids
+  subnet_ids = dependency.vpc.outputs.public_subent_ids
 
   enable_public_http = true
   internal           = false

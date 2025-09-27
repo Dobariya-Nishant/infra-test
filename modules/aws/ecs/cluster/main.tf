@@ -76,7 +76,7 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
 
   capacity_providers = [
     aws_ecs_capacity_provider.api_cp.name,
-    aws_ecs_capacity_provider.frontend_cp.arn,
+    aws_ecs_capacity_provider.frontend_cp.name,
     "FARGATE"
   ]
 

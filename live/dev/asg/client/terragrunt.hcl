@@ -27,7 +27,7 @@ inputs = {
   environment  = local.env_vars.locals.environment
 
   vpc_id     = dependency.vpc.outputs.vpc_id
-  subnet_ids = dependency.vpc.outputs.private_subent_ids
+  vpc_zone_identifier = dependency.vpc.outputs.private_subent_ids
 
   desired_capacity = 0
   max_size         = 0

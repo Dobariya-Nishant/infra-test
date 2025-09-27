@@ -1,4 +1,4 @@
-output "id" {
+output "lb_id" {
   description = "ID of the load balancer"
   value       = aws_lb.this.id
 }
@@ -16,4 +16,8 @@ output "default_tg_arn" {
 output "api_tg_arn" {
   description = "ID of the load balancer"
   value       = aws_lb_target_group.api_tg.arn
+}
+
+output "ns_records" {
+  value = aws_route53_zone.this.name_servers
 }

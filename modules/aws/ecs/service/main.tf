@@ -7,10 +7,10 @@ resource "aws_ecs_service" "this" {
   name            = var.name
   cluster         = var.ecs_cluster_id
   task_definition = aws_ecs_task_definition.this.arn
-  desired_count   = var.task.desired_count
+  desired_count   = var.desired_count
 
   network_configuration {
-    subnets          = var.task.subnet_ids
+    subnets          = var.subnet_ids
     security_groups  = [aws_security_group.this.id]
     assign_public_ip = false
   }
@@ -27,7 +27,7 @@ resource "aws_ecs_service" "this" {
 
   # Attach load balancer 
   load_balancer {
-    container_name   = var.name
+    container_name   = var.task.name
     target_group_arn = var.load_balancer_config.target_group_arn
     container_port   = var.load_balancer_config.container_port
   }
@@ -39,7 +39,7 @@ resource "aws_ecs_service" "this" {
   }
 
   tags = {
-    Name = "${var.task.name}-service"
+    Name = "${var.name}-service"
   }
 }
 
@@ -128,7 +128,7 @@ resource "aws_appautoscaling_policy" "memory_scaling" {
 
 resource "aws_security_group" "this" {
   name        = "${var.task.name}-sg"
-  description = "${var.task.name} task`s Security group"
+  description = "tasks Security group"
   vpc_id      = var.vpc_id
 
   tags = {
@@ -137,15 +137,15 @@ resource "aws_security_group" "this" {
 }
 
 # Allow inbound from load balancer SGs
-resource "aws_security_group_rule" "loadbalancer_sg" {
-  count = length(var.task.load_balancer_config)
+resource "aws_security_group_rule" "loadbalancer_sg_access" {
+  count = length(var.load_balancer_config) > 0 ? 1 : 0
 
   description              = "Allow LoadBalancer traffic"
   type                     = "ingress"
-  from_port                = var.load_balancer_config[count.index].port
-  to_port                  = var.load_balancer_config[count.index].port
-  protocol                 = var.load_balancer_config[count.index].protocol
-  source_security_group_id = var.load_balancer_config[count.index].sg_id
+  from_port                = var.load_balancer_config.container_port
+  to_port                  = var.load_balancer_config.container_port
+  protocol                 = "tcp"
+  source_security_group_id = var.load_balancer_config.sg_id
   security_group_id        = aws_security_group.this.id
 }
 

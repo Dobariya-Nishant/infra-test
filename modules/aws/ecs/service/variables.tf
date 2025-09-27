@@ -38,6 +38,12 @@ variable "enable_public_https" {
   default     = false
 }
 
+variable "subnet_ids" {
+  description = "Subnets in which to deploy the task/service."
+  type        = list(string)
+}
+
+
 # =========================
 # ECS Service Configuration
 # =========================
@@ -91,7 +97,7 @@ variable "task" {
     task_role_arn = optional(string)       // IAM role ARN the task assumes for permissions
     cpu           = optional(number)       // CPU units reserved for the task
     memory        = optional(number)       // Memory (in MiB) reserved for the task
-    subnet_ids    = list(string)           // Subnets in which to deploy the task/service
+    essential = optional(bool)   
     command       = optional(list(string)) // Override container entrypoint command
     environment = optional(list(object({   // List of environment variables for the container
       name  = string

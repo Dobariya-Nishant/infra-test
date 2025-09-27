@@ -3,7 +3,7 @@ include {
 }
 
 terraform {
-  source = "../../../modules/aws/ecs/cluster"
+  source = "../../../../modules/aws/ecs/cluster"
 }
 
 dependency "vpc" {
