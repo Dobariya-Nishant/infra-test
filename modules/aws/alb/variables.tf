@@ -31,8 +31,8 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
-variable "zone_id" {
-  description = "List of subnet IDs to launch the ALB and associated resources into. Typically across multiple AZs."
+variable "hostedzone_id" {
+  description = "hostedzone id to register alb with domain name"
   type        = string
 }
 

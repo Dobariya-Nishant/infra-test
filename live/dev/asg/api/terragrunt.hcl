@@ -21,17 +21,17 @@ locals {
 }
 
 inputs = {
-  name = "cardstudio-api"
+  name = "${local.env_vars.locals.project_name}-api"
 
   project_name = local.env_vars.locals.project_name
   environment  = local.env_vars.locals.environment
 
   vpc_id     = dependency.vpc.outputs.vpc_id
-  vpc_zone_identifier = dependency.vpc.outputs.private_subent_ids
+  subent_ids = dependency.vpc.outputs.private_subent_ids
 
   desired_capacity = 0
   max_size         = 0
   min_size         = 0
 
-  ecs_cluster_name = "cardstudio-ecs-dev"
+  ecs_cluster_name = "${local.env_vars.locals.project_name}-ecs-${local.env_vars.locals.environment}"
 }

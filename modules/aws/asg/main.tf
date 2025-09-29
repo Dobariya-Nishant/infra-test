@@ -10,9 +10,8 @@ resource "aws_autoscaling_group" "this" {
   health_check_grace_period = 300
   health_check_type         = "EC2"
   placement_group           = aws_placement_group.this.id
-  vpc_zone_identifier       = var.vpc_zone_identifier
+  vpc_zone_identifier       = var.subnet_ids
   protect_from_scale_in     = true
-  target_group_arns         = var.target_group_arns
 
   metrics_granularity = "1Minute"
 
@@ -66,7 +65,7 @@ resource "aws_launch_template" "this" {
   }
 
   network_interfaces {
-    associate_public_ip_address = var.enable_public_ip_address
+    associate_public_ip_address = false
     security_groups             = [aws_security_group.this.id]
   }
 
@@ -167,19 +166,6 @@ resource "aws_security_group_rule" "public_ssh" {
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.this.id
-}
-
-# Allow inbound from load balancer SGs (configurable list)
-resource "aws_security_group_rule" "loadbalancer_sg_access" {
-  count = length(var.load_balancer_config)
-
-  description              = "Allow LoadBalancer traffic"
-  type                     = "ingress"
-  from_port                = var.load_balancer_config[count.index].port
-  to_port                  = var.load_balancer_config[count.index].port
-  protocol                 = var.load_balancer_config[count.index].protocol
-  source_security_group_id = var.load_balancer_config[count.index].sg_id
-  security_group_id        = aws_security_group.this.id
 }
 
 # Egress rule: Allow all outbound traffic

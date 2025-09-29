@@ -56,5 +56,5 @@ inputs = {
   vpc_id = dependency.vpc.outputs.vpc_id
 
   frontend_auto_scaling_group_arn = dependency.client_asg.outputs.asg_arn
-  api_auto_scaling_group_arn = dependency.api_asg.outputs.asg_arn
+  api_auto_scaling_group_arn      = dependency.api_asg.outputs.asg_arn
 }

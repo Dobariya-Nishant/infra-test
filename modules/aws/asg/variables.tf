@@ -26,7 +26,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "vpc_zone_identifier" {
+variable "subnet_ids" {
   description = "List of subnet IDs for the Auto Scaling Group to launch instances in. Determines availability zones."
   type        = list(string)
 }
@@ -59,22 +59,6 @@ variable "enable_ssh_from_current_ip" {
   default     = false
 }
 
-variable "load_balancer_config" {
-  description = "List of objects that define load balancer security group access (used to allow internal traffic from ALB/NLB)."
-  type = list(object({
-    sg_id    = string
-    port     = number
-    protocol = optional(string)
-  }))
-  default = []
-}
-
-variable "security_groups" {
-  description = "Optional list of additional security group IDs to associate with the EC2 instances."
-  type        = list(string)
-  default     = []
-}
-
 # =================
 # EC2 Configuration
 # =================
@@ -97,18 +81,6 @@ variable "ebs_size" {
   default     = 30
 }
 
-variable "enable_public_ip_address" {
-  description = "Associate a public IP address with launched EC2 instances. Useful for SSH or internet access."
-  type        = bool
-  default     = false
-}
-
-variable "user_data" {
-  description = "Base64-encoded user data script to bootstrap EC2 instances (e.g., install packages, join ECS cluster)."
-  type        = string
-  default     = ""
-}
-
 # ===============
 # ECS Integration
 # ===============
@@ -116,7 +88,6 @@ variable "user_data" {
 variable "ecs_cluster_name" {
   description = "Name of the ECS cluster to register the EC2 instances to. If set, ECS-specific AMI and user data will be used."
   type        = string
-  default     = null
 }
 
 # ==================
@@ -139,10 +110,4 @@ variable "min_size" {
   description = "Minimum number of instances the Auto Scaling Group should maintain."
   type        = number
   default     = 1
-}
-
-variable "target_group_arns" {
-  description = "List of target group ARNs to register EC2 instances (used when attached to a Load Balancer)."
-  type        = list(string)
-  default     = []
 }

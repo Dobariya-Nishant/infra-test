@@ -43,7 +43,6 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
-
 # =========================
 # ECS Service Configuration
 # =========================
@@ -92,12 +91,12 @@ variable "task" {
     support for optional load balancer integration, IAM task roles, custom port mappings, and more.
   DESC
   type = object({
-    name          = string                 // Name of the ECS task definition and service
-    image_uri     = string                 // Container image URI from ECR or external registry
-    task_role_arn = optional(string)       // IAM role ARN the task assumes for permissions
-    cpu           = optional(number)       // CPU units reserved for the task
-    memory        = optional(number)       // Memory (in MiB) reserved for the task
-    essential = optional(bool)   
+    name          = string           // Name of the ECS task definition and service
+    image_uri     = string           // Container image URI from ECR or external registry
+    task_role_arn = optional(string) // IAM role ARN the task assumes for permissions
+    cpu           = optional(number) // CPU units reserved for the task
+    memory        = optional(number) // Memory (in MiB) reserved for the task
+    essential     = optional(bool)
     command       = optional(list(string)) // Override container entrypoint command
     environment = optional(list(object({   // List of environment variables for the container
       name  = string

@@ -59,6 +59,7 @@ resource "aws_internet_gateway" "this" {
 # 📤 Elastic IP for NAT Gateway
 resource "aws_eip" "this" {
   count  = var.enable_nat_gateway == true ? 1 : 0
+  
   domain = "vpc"
 
   tags = {

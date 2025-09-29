@@ -4,7 +4,7 @@
 
 resource "aws_lb" "this" {
   name               = local.name
-  internal           = var.internal                # Controls if the ALB is public or internal
+  internal           = var.internal                 # Controls if the ALB is public or internal
   load_balancer_type = "application"                # ALB operates at Layer 7 (HTTP/HTTPS)
   security_groups    = [aws_security_group.this.id] # Attach associated security group
   subnets            = var.subnet_ids               # Deploy ALB across specified subnets
@@ -34,12 +34,12 @@ resource "aws_lb_target_group" "default" {
   # Optional health check block
   health_check {
     enabled             = true
-    interval            = 30   # how often LB checks
-    path                = "/"  # must match your container/EC2 health endpoint
+    interval            = 30  # how often LB checks
+    path                = "/" # must match your container/EC2 health endpoint
     port                = "traffic-port"
-    healthy_threshold   = 3    # how many successes to mark healthy
-    unhealthy_threshold = 2    # how many fails to mark unhealthy
-    timeout             = 5    # how long to wait for response
+    healthy_threshold   = 3     # how many successes to mark healthy
+    unhealthy_threshold = 2     # how many fails to mark unhealthy
+    timeout             = 5     # how long to wait for response
     matcher             = "200" # (for ALB/HTTP checks)
   }
 
@@ -62,12 +62,12 @@ resource "aws_lb_target_group" "api_tg" {
   # Optional health check block
   health_check {
     enabled             = true
-    interval            = 30   # how often LB checks
-    path                = "/"  # must match your container/EC2 health endpoint
+    interval            = 30  # how often LB checks
+    path                = "/" # must match your container/EC2 health endpoint
     port                = "traffic-port"
-    healthy_threshold   = 3    # how many successes to mark healthy
-    unhealthy_threshold = 2    # how many fails to mark unhealthy
-    timeout             = 5    # how long to wait for response
+    healthy_threshold   = 3     # how many successes to mark healthy
+    unhealthy_threshold = 2     # how many fails to mark unhealthy
+    timeout             = 5     # how long to wait for response
     matcher             = "200" # (for ALB/HTTP checks)
   }
 
@@ -80,13 +80,36 @@ resource "aws_lb_target_group" "api_tg" {
 # 🎧 ALB Listeners (Port 80 / 443)
 # ================================
 
-resource "aws_lb_listener" "this" {
+resource "aws_lb_listener" "https" {
+  count = var.enable_public_https == true
+
   load_balancer_arn = aws_lb.this.arn
   port              = 443     # Usually 80 or 443
   protocol          = "HTTPS" # HTTP or HTTPS
   ssl_policy        = "ELBSecurityPolicy-2016-08"
   # Optional for HTTPS
-  certificate_arn = aws_acm_certificate.this.arn
+  certificate_arn = aws_acm_certificate.this[0].arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.default.arn
+  }
+
+  depends_on = [
+    aws_acm_certificate_validation.this
+  ]
+
+  tags = {
+    Name = "${local.name}-https"
+  }
+}
+
+resource "aws_lb_listener" "http" {
+  count = var.enable_public_http == true
+
+  load_balancer_arn = aws_lb.this.arn
+  port              = 80     # Usually 80 or 443
+  protocol          = "HTTP" # HTTP or HTTPS
 
   default_action {
     type             = "forward"
@@ -94,7 +117,7 @@ resource "aws_lb_listener" "this" {
   }
 
   tags = {
-    Name = local.name
+    Name = "${local.name}-http"
   }
 }
 
@@ -102,8 +125,10 @@ resource "aws_lb_listener" "this" {
 # 📜 ALB Listener Rules (Path-based Routing)
 # ==========================================
 
-resource "aws_lb_listener_rule" "api" {
-  listener_arn = aws_lb_listener.this.arn
+resource "aws_lb_listener_rule" "api_https" {
+  count = var.enable_public_https == true
+
+  listener_arn = aws_lb_listener.https[0].arn
   priority     = 1
 
   # Forward requests to matching target group
@@ -120,7 +145,31 @@ resource "aws_lb_listener_rule" "api" {
   }
 
   tags = {
-    Name = "api-${local.name}"
+    Name = "${local.name}-api-https"
+  }
+}
+
+resource "aws_lb_listener_rule" "api_http" {
+  count = var.enable_public_http == true
+
+  listener_arn = aws_lb_listener.http[0].arn
+  priority     = 1
+
+  # Forward requests to matching target group
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.api_tg.arn
+  }
+
+  # Match based on path pattern
+  condition {
+    path_pattern {
+      values = ["/api"]
+    }
+  }
+
+  tags = {
+    Name = "${local.name}-api-http"
   }
 }
 
@@ -182,11 +231,12 @@ resource "aws_security_group_rule" "egress" {
   security_group_id = aws_security_group.this.id
 }
 
-
-#####################################
+# ===================================
 # 2. ACM Certificate (DNS validation)
-#####################################
+# ===================================
 resource "aws_acm_certificate" "this" {
+  count = var.enable_public_https == true
+
   domain_name       = local.domain_name
   validation_method = "DNS"
 
@@ -199,25 +249,46 @@ resource "aws_acm_certificate" "this" {
   }
 }
 
-########################################
+# =================================
 # 3. DNS records for ACM validation
-########################################
+# =================================
 resource "aws_route53_record" "cert_validation" {
+  count = var.enable_public_https == true
+
   for_each = {
-    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => dvo
+    for dvo in aws_acm_certificate.this[0].domain_validation_options : dvo.domain_name => dvo
   }
 
-  zone_id = var.zone_id
+  zone_id = var.hostedzone_id
   name    = each.value.resource_record_name
   type    = each.value.resource_record_type
   records = [each.value.resource_record_value]
   ttl     = 60
 }
 
-##############################
+# =============================
 # 4. ACM Certificate Validation
-##############################
+# =============================
 resource "aws_acm_certificate_validation" "this" {
-  certificate_arn         = aws_acm_certificate.this.arn
+  count = var.enable_public_https == true
+
+  certificate_arn         = aws_acm_certificate.this[0].arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
+}
+
+# ========================================
+# 7. Route53 record to point domain to ALB
+# ========================================
+resource "aws_route53_record" "alb_alias" {
+  count = var.enable_public_https == true
+
+  zone_id = var.hostedzone_id
+  name    = local.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.this.dns_name
+    zone_id                = aws_lb.this.zone_id
+    evaluate_target_health = true
+  }
 }

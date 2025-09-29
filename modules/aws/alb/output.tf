@@ -17,7 +17,3 @@ output "api_tg_arn" {
   description = "ID of the load balancer"
   value       = aws_lb_target_group.api_tg.arn
 }
-
-output "ns_records" {
-  value = aws_route53_zone.this.name_servers
-}

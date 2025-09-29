@@ -22,6 +22,8 @@ resource "aws_ecs_cluster" "this" {
 
 # Creates capacity providers for each ASG passed in
 resource "aws_ecs_capacity_provider" "api_cp" {
+  count = var.api_auto_scaling_group_arn != null ? 1 : 0
+
   name = "api-cp-${local.name}"
 
   auto_scaling_group_provider {
@@ -45,6 +47,8 @@ resource "aws_ecs_capacity_provider" "api_cp" {
 
 # Creates capacity providers for each ASG passed in
 resource "aws_ecs_capacity_provider" "frontend_cp" {
+  count = var.frontend_auto_scaling_group_arn != null ? 1 : 0
+
   name = "frontend-cp-${local.name}"
 
   auto_scaling_group_provider {
@@ -75,8 +79,8 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
   cluster_name = aws_ecs_cluster.this.name
 
   capacity_providers = [
-    aws_ecs_capacity_provider.api_cp.name,
-    aws_ecs_capacity_provider.frontend_cp.name,
+    try(aws_ecs_capacity_provider.api_cp[0].name, null),
+    try(aws_ecs_capacity_provider.frontend_cp[0].name, null),
     "FARGATE"
   ]
 

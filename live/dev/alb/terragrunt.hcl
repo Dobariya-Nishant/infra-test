@@ -16,20 +16,32 @@ dependency "vpc" {
   }
 }
 
+dependency "hostedzone" {
+  config_path = "../route53"
+
+  # Optional: helpful for plan if hostedzone is not applied yet
+  mock_outputs = {
+    hostedzone_id  = "mock-hostedzone-id"
+    hostedzone_arn = "mock-hostedzone-arn"
+  }
+}
+
 locals {
   env_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 }
 
 inputs = {
-  name = "cardstudio"
+  name = local.env_vars.locals.project_name
 
   project_name = local.env_vars.locals.project_name
   environment  = local.env_vars.locals.environment
-  domain_name = local.env_vars.locals.domain_name
+  domain_name  = local.env_vars.locals.domain_name
 
   vpc_id     = dependency.vpc.outputs.vpc_id
   subnet_ids = dependency.vpc.outputs.public_subent_ids
 
-  enable_public_http = true
-  internal           = false
+  hostedzone_id = dependency.hostedzone.outputs.hostedzone_id
+
+  enable_public_https = true
+  internal            = false
 }

@@ -22,12 +22,12 @@ dependency "cluster" {
 
   # Optional: helpful for plan if ALB is not applied yet
   mock_outputs = {
-    cluster_name          = "lt-0123456789abcdef0"
-    cluster_id            = "0123456789abcdef0"
-    api_cp_name          = "mock-api-cp-name"
+    cluster_name     = "mock-cluster-name"
+    cluster_id       = "mock-cluster-id"
+    api_cp_name      = "mock-api-cp-name"
     frontend_cp_name = "mock-frontend-cp-name"
-    frontend_cp_arn     = "arn:aws:autoscaling:us-east-1:111122223333:autoScalingGroup:fake-asg-id:autoScalingGroupName/mock-api-tg-arn"
-    api_cp_arn = "arn:aws:autoscaling:us-east-1:111122223333:autoScalingGroup:fake-asg-id:autoScalingGroupName/mock-default-tg-arn"
+    frontend_cp_arn  = "arn:aws:autoscaling:us-east-1:111122223333:autoScalingGroup:fake-asg-id:autoScalingGroupName/mock-api-tg-arn"
+    api_cp_arn       = "arn:aws:autoscaling:us-east-1:111122223333:autoScalingGroup:fake-asg-id:autoScalingGroupName/mock-default-tg-arn"
   }
 }
 
@@ -37,8 +37,8 @@ dependency "alb" {
 
   # Optional: helpful for plan if ALB is not applied yet
   mock_outputs = {
-    lb_id          = "lt-0123456789abcdef0"
-    sg_id          = "mock-launch-template"
+    lb_id          = "mock-lb-id"
+    sg_id          = "mock-sg-id"
     default_tg_arn = "arn:aws:autoscaling:us-east-1:111122223333:autoScalingGroup:fake-asg-id:autoScalingGroupName/mock-default-tg-arn"
     api_tg_arn     = "arn:aws:autoscaling:us-east-1:111122223333:autoScalingGroup:fake-asg-id:autoScalingGroupName/mock-api-tg-arn"
   }
@@ -62,25 +62,25 @@ inputs = {
     container_port   = 80
   }
 
-  ecs_cluster_name     = dependency.cluster.outputs.cluster_name
-  ecs_cluster_id     = dependency.cluster.outputs.cluster_id
+  ecs_cluster_name = dependency.cluster.outputs.cluster_name
+  ecs_cluster_id   = dependency.cluster.outputs.cluster_id
 
   desired_count = 1
 
-  capacity_provider_name = dependency.cluster.outputs.frontend_cp_name
+  # capacity_provider_name = dependency.cluster.outputs.frontend_cp_name
 
   task = {
-      name           = "nginx-dev"
-      image_uri      = "nginx:latest"
-      essential      = true
-      container_port = 80
-      cpu            = 512
-      memory         = 800
-      portMappings = [
-        {
-          containerPort = 80
-          hostPort      = 80
-        }
-      ]
-    }
+    name           = "nginx-dev"
+    image_uri      = "nginx:latest"
+    essential      = true
+    container_port = 80
+    cpu            = 512
+    memory         = 800
+    portMappings = [
+      {
+        containerPort = 80
+        hostPort      = 80
+      }
+    ]
+  }
 }

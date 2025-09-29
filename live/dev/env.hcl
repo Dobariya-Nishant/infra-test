@@ -1,5 +1,5 @@
 locals {
-  project_name = "cardstudio"
+  project_name = "activatree"
+  domain_name  = "activatree.com"
   environment  = "dev"
-  domain_name = "activatree.com"
 }

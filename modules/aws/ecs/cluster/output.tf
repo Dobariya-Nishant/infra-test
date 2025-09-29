@@ -7,17 +7,17 @@ output "cluster_id" {
 }
 
 output "api_cp_name" {
-  value = aws_ecs_capacity_provider.api_cp.name
+  value = try(aws_ecs_capacity_provider.api_cp[0].name, null)
 }
 
 output "api_cp_arn" {
-  value = aws_ecs_capacity_provider.api_cp.arn
+  value = try(aws_ecs_capacity_provider.api_cp[0].arn, null)
 }
 
 output "frontend_cp_arn" {
-  value = aws_ecs_capacity_provider.frontend_cp.arn
+  value = try(aws_ecs_capacity_provider.frontend_cp[0].arn, null)
 }
 
 output "frontend_cp_name" {
-  value = aws_ecs_capacity_provider.frontend_cp.name
+  value = try(aws_ecs_capacity_provider.frontend_cp[0].name, null)
 }
