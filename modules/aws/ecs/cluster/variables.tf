@@ -30,7 +30,7 @@ variable "vpc_id" {
 # Capacity Providers
 # ==================
 
-variable "frontend_auto_scaling_group_arn" {
+variable "client_auto_scaling_group_arn" {
   description = "List of ARNs of EC2 Auto Scaling Groups that will serve as capacity providers when using 'ec2' or 'combine' mode."
   type        = string
   default     = null
@@ -38,5 +38,6 @@ variable "frontend_auto_scaling_group_arn" {
 
 variable "api_auto_scaling_group_arn" {
   description = "List of ARNs of EC2 Auto Scaling Groups that will serve as capacity providers when using 'ec2' or 'combine' mode."
+  type        = string
   default     = null
 }

@@ -15,6 +15,13 @@ resource "aws_ecs_service" "this" {
     assign_public_ip = false
   }
 
+  # Launch type only when no capacity provider is used
+  launch_type = var.capacity_provider_name == null ? "FARGATE" : null
+
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
+
   # Only add capacity provider if provided
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_name != null ? [var.capacity_provider_name] : []
@@ -32,10 +39,13 @@ resource "aws_ecs_service" "this" {
     container_port   = var.load_balancer_config.container_port
   }
 
-  # Distributes tasks evenly across EC2 instances
-  ordered_placement_strategy {
-    type  = "spread"
-    field = "instanceId"
+  # Only if using EC2, add placement strategy
+  dynamic "ordered_placement_strategy" {
+    for_each = var.capacity_provider_name != null ? [1] : []
+    content {
+      type  = "spread"
+      field = "instanceId"
+    }
   }
 
   tags = {
@@ -53,6 +63,7 @@ resource "aws_ecs_task_definition" "this" {
   cpu          = var.task.cpu
   memory       = var.task.memory
   network_mode = "awsvpc"
+  requires_compatibilities = var.capacity_provider_name == null ? ["FARGATE"] : []
 
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn      = try(var.task.task_role_arn, null)
@@ -189,25 +200,6 @@ resource "aws_security_group_rule" "egress" {
 # ====================
 # IAM Roles & Policies
 # ====================
-
-# IAM role trust policy for ECS container instances
-data "aws_iam_policy_document" "ecs_assume_role" {
-  statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-
-    actions = ["sts:AssumeRole"]
-  }
-}
-
-# AWS managed policy for ECS service role
-data "aws_iam_policy" "ecs_service_role_policy" {
-  name = "AmazonEC2ContainerServiceRole"
-}
 
 # IAM role trust policy for ECS task execution role
 data "aws_iam_policy_document" "ecs_task_execution_role" {

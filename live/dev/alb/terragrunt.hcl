@@ -17,7 +17,7 @@ dependency "vpc" {
 }
 
 dependency "hostedzone" {
-  config_path = "../route53"
+  config_path = "../../common/route53"
 
   # Optional: helpful for plan if hostedzone is not applied yet
   mock_outputs = {
@@ -41,7 +41,4 @@ inputs = {
   subnet_ids = dependency.vpc.outputs.public_subent_ids
 
   hostedzone_id = dependency.hostedzone.outputs.hostedzone_id
-
-  enable_public_https = true
-  internal            = false
 }

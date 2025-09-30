@@ -36,31 +36,9 @@ variable "hostedzone_id" {
   type        = string
 }
 
-# =======================
-# 🔐 Security Group Rules
-# =======================
-
-variable "enable_public_https" {
-  description = "Enable ingress on port 443 (HTTPS) from the public internet."
-  type        = bool
-  default     = false
-}
-
-variable "enable_public_http" {
-  description = "Enable ingress on port 80 (HTTP) from the public internet."
-  type        = bool
-  default     = false
-}
-
 # =========================
 # ⚖️ Load Balancer Settings
 # =========================
-
-variable "internal" {
-  description = "Determines if the ALB is internal (private) or internet-facing (public). Set to true for internal."
-  type        = bool
-  default     = true
-}
 
 variable "domain_name" {
   description = "domain name"
